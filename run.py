@@ -50,7 +50,7 @@ if __name__ == '__main__':
     else:
         logdir = Path("logs") / datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
         print(f"Logging to {logdir}")
-    for i in range(1, 4):
+    for i in range(3, 4):
         MAP_PATH = Path(f"maps/map{i}.json")
         if logdir is not None:
             subdir = logdir / f"map{i}"

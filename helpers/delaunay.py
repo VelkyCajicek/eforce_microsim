@@ -3,9 +3,9 @@ from itertools import chain
 from helpers.delaunay_helper_classes import Vertex, Edge, Triangle
 
 class Delaunay:
-    def __init__(self, points : list[list[float]]):
+    def __init__(self, points : list[list[float]], weight : float):
         self.vertices = [Vertex(point[0], point[1], identity) for identity, point in enumerate(points)]
-        self.weight = 0.5
+        self.weight = weight
         
     def compute_super_triangle(self) -> Triangle:
         min_x, min_y = np.inf, np.inf
@@ -76,7 +76,7 @@ class Delaunay:
             return (identity_0 % 2 == 0 and identity_1 % 2 != 0) or (identity_0 % 2 != 0 and identity_1 % 2 == 0)
         
         def are_almost_connected(identity_list : list[int]):
-            tolerance = 2
+            tolerance = 3
             return all(abs(identity_list[i] - identity_list[1]) <= tolerance for i in [0, 2])
         
         for vertex in self.vertices:
@@ -98,21 +98,33 @@ class Delaunay:
                 triangle.vertex_2.number_of_connections += 1
                 
                 vertices = [triangle.vertex_0, triangle.vertex_1, triangle.vertex_2]
+                weight_change = 0
                 # Find consecutive pair
                 for i in range(len(vertices) - 1):
                     if are_different_cones(vertices[i+1].identity, vertices[i].identity):
+                        #cone_i = vertices[i].number_of_connections
+                        #cone_i1 = vertices[i+1].number_of_connections
+                        
+                        #if (cone_i >= 6 and cone_i1 < 6) or (cone_i1 >= 6 and cone_i < 6): 
+                        #    if vertices[i].identity % 2 == 0:
+                        #        weight_change = -0.05
+                        #    else:
+                        #        weight_change = 0.05
+                        #
+                        #print(weight_change)
                         
                         mid_points.append([
                             vertices[i].x * self.weight + vertices[i+1].x * (1 - self.weight),
                             vertices[i].y * self.weight + vertices[i+1].y * (1 - self.weight)
                         ])
 
-        return np.array(mid_points)
+        return np.array(mid_points), weight_change
 
 class DelaunayPathPlanner:
     def __init__(self, start_point : list[list[float]]):
         self.start_point = start_point
         self.start_points = [start_point]
+        self.weight = 0.5
         
     def reset(self, start_point : list[list[float]]):
         self.start_point = start_point
@@ -145,8 +157,13 @@ class DelaunayPathPlanner:
             return
         
         # Perform Delaunay triangulation
-        delaunay = Delaunay(all_points)
-        midpoints = delaunay.triangulate()
+        delaunay = Delaunay(all_points, self.weight)
+        midpoints, weight_change = delaunay.triangulate()
+        
+        if self.weight < 0: self.weight = 0
+        elif self.weight > 1: self.weight = 0
+        else: self.weight += weight_change
+        #print(self.weight)
         
         # Limit to n_steps
         path_points = midpoints[:n_steps]
