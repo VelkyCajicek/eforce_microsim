@@ -1,5 +1,6 @@
 from typing import Any
 from helpers.path_tracking import stanley_steering
+from helpers.mpc import mpc_steering
 from helpers.path_planning import PathPlanner
 from helpers.finish_detector import LapCounter
 from helpers.speed_profile import SpeedProfile
@@ -44,14 +45,17 @@ class MyMission():
         if self.stopped_time + 1. < mission_time:
             self.finished = True
         # 3. controls, you SHOULD tune the constants here
-        steering_ang, controller_log = stanley_steering(path, 4.5, wheel_speed, 2.9, 0.0)
+        #steering_ang, controller_log = stanley_steering(path, 4.5, wheel_speed, 2.9, 0.0)
+        # Get current steering angle from observations
+        #current_steering = args.get("actual_steering_angle", 0.0)
+        steering_ang = mpc_steering(path, wheel_speed)
         # 4. logging and debugging
         extras = {
             "mission_time": mission_time,
             "finish_time": self.finish_time,
             "path": path,
             "lap_times": self.lap_counter.lap_times,
-            "controller_log": controller_log,
+            #"controller_log": controller_log,
         }
         # 5. return
         return self.finished, self.speed_setpoint, steering_ang, extras

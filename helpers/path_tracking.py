@@ -38,7 +38,6 @@ def get_lookahead_idx(path, start_idx, lookahead_dist):
         lookahead_idx += 1
     return lookahead_idx % path.shape[0]
 
-
 def stanley_steering(path, lookahead_dist, speed, gain, lateran_gain):
     """
     Lateral steering controller
@@ -88,5 +87,7 @@ def stanley_steering(path, lookahead_dist, speed, gain, lateran_gain):
                    "direction": direction,
                    "delta": delta
                    }
+    
+    print(delta)
 
     return delta, log_message
