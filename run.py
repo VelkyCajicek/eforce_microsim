@@ -5,8 +5,17 @@ from pathlib import Path
 from helpers.sim import State, StateRenderer, make_simulation_object, plot_state_summary_and_wait, history_to_csv
 from config import state_config
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 MAP_ROI = 120.  # meters
 
+def plot_steering_angles(stanley_values : list[float], mpc_values : list[float]):
+    fig, ax = plt.subplots()
+    ax.plot(np.array(stanley_values))
+    ax.plot(np.array(mpc_values), linestyle='dashed')
+    
+    plt.show()
 
 def run_mission(map_path: str | Path, logdir: Path | None, render: bool, benchmark: bool = False):
     state = State(map_path, state_config)
@@ -35,8 +44,8 @@ def run_mission(map_path: str | Path, logdir: Path | None, render: bool, benchma
     if render: renderer.close()
     if logdir is not None:
         history_to_csv(state, logdir / "history.csv")
-    plot_state_summary_and_wait(state, finish_time, success=finish_time is not None)
-
+    plot_steering_angles(mission.stanley_values, mission.mpc_values)
+    #plot_state_summary_and_wait(state, finish_time, success=finish_time is not None)
 
 if __name__ == '__main__':
     parser = ArgumentParser()

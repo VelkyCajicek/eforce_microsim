@@ -1,7 +1,6 @@
 import numpy as np
 from config import ConeClasses
 
-
 class PathPlanning(object):
     def __init__(self, start_point, clockwise=-1, filling_cones_distance=3.5, movement_direction="x", debugging=False):
         """

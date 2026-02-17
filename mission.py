@@ -1,10 +1,10 @@
 from typing import Any
 from helpers.path_tracking import stanley_steering
-from helpers.mpc import mpc_steering
+from helpers.mpc import MPC
 from helpers.path_planning import PathPlanner
 from helpers.finish_detector import LapCounter
 from helpers.speed_profile import SpeedProfile
-
+from config import car_params
 
 class MyMission():
     """
@@ -16,6 +16,7 @@ class MyMission():
     def __init__(self):
         # Feel free to change these parameters
         self.path_planner = PathPlanner({"n_steps": 20, "verbose": False})
+        self.path_tracking = MPC(car_params)
         self.lap_counter = LapCounter(6, 2., 10., [-0.5, 10, -4, 4])
         self.speed_profile = SpeedProfile(0.8, 2, 4)
         self.min_speed_setpoint = 5.  # m/s
@@ -24,7 +25,10 @@ class MyMission():
         self.finished = False
         self.finish_time = float('inf')
         self.stopped_time = float('inf')
-
+        
+        self.stanley_values = []
+        self.mpc_values = []
+        
     def loop(self, args: dict, mission_time: float) -> tuple[bool, float, Any, dict[str, Any]]:
         percep_data = args["percep_data"]
         wheel_speed = args["actual_speed"]
@@ -45,10 +49,11 @@ class MyMission():
         if self.stopped_time + 1. < mission_time:
             self.finished = True
         # 3. controls, you SHOULD tune the constants here
-        #steering_ang, controller_log = stanley_steering(path, 4.5, wheel_speed, 2.9, 0.0)
         # Get current steering angle from observations
-        #current_steering = args.get("actual_steering_angle", 0.0)
-        steering_ang = mpc_steering(path, wheel_speed)
+        steering_ang = self.path_tracking.step(path)
+        self.mpc_values.append(steering_ang)
+        #steering_ang, controller_log = stanley_steering(path, 4.5, wheel_speed, 2.9, 0.0)
+        #self.stanley_values.append(steering_ang)
         # 4. logging and debugging
         extras = {
             "mission_time": mission_time,

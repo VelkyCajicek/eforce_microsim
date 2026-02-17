@@ -87,7 +87,5 @@ def stanley_steering(path, lookahead_dist, speed, gain, lateran_gain):
                    "direction": direction,
                    "delta": delta
                    }
-    
-    print(delta)
 
     return delta, log_message
